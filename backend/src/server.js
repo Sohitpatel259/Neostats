@@ -33,6 +33,8 @@ app.get("/api/health", (_request, response) => {
   response.json({
     status: "ok",
     database: mongoose.connection.readyState === 1 ? "connected" : "demo",
+    databaseName: mongoose.connection.readyState === 1 ? mongoose.connection.name : null,
+    host: mongoose.connection.readyState === 1 ? mongoose.connection.host : null,
   });
 });
 

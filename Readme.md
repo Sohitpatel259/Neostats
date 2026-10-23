@@ -11,6 +11,7 @@ Orbit is a collaborative project management workspace for Neostats teams. It is 
 - Express/MongoDB API for projects, tasks, and comments
 - Server-side role checks for admin, manager, member, and viewer actions
 - Signed login sessions with role-derived authorization; client headers cannot impersonate a role
+- The authenticated workspace hydrates from MongoDB and does not silently replace failed database reads with demo records
 - Optimistic concurrency for tasks using `if-match-version` or a submitted `version`; stale edits return `409`
 - Paginated project reads and explicit validation/error responses
 
@@ -18,11 +19,16 @@ Orbit is a collaborative project management workspace for Neostats teams. It is 
 
 1. Install dependencies with `npm run install:all`.
 2. Set `MONGO_URL` in `backend/.env` to your MongoDB Atlas or local MongoDB connection string.
-3. Start both applications with `npm run dev`.
-4. Open `http://localhost:3000`.
+3. Set `MONGO_DB_NAME=neostats` so the API always writes to the database you expect in Atlas.
+4. Start both applications with `npm run dev`.
+5. Open `http://localhost:3000`.
 
 The frontend runs on `http://localhost:3000` and the API runs on `http://localhost:5000`.
 If you open the frontend through a LAN address such as `http://192.168.x.x:3000` or `:3001`, the browser automatically targets the API on the same host at port `5000`.
+
+After signing in, project, task, and user changes are sent to the API first. The UI updates only after MongoDB confirms the operation; task updates also keep the server-returned version for the next optimistic-concurrency update. If a read fails, the workspace shows an error and an empty state instead of presenting unsaved demo records.
+
+Verify the exact Atlas database receiving data at `GET /api/health`. It returns `databaseName` and `host`. Collections are created by MongoDB after the first successful insert, so registering the first account creates the `users` collection; creating projects, tasks, and comments creates their corresponding collections.
 
 Open `http://localhost:3000/login` to create an account or sign in. The first registered account becomes the workspace admin; later accounts default to team members. Set a strong `AUTH_SECRET` in `backend/.env` before sharing the application.
 
@@ -51,11 +57,23 @@ Key routes:
 - `POST /api/auth/login`
 - `GET /api/auth/me`
 - `GET /api/projects?page=1&limit=20`
+- `GET /api/projects/:id`
 - `POST /api/projects`
 - `PATCH /api/projects/:id`
+- `PATCH /api/projects/:id/archive`
+- `DELETE /api/projects/:id`
+- `GET /api/projects/:projectId/members`
+- `POST /api/projects/:projectId/members`
+- `PATCH /api/projects/:projectId/members/:userId`
+- `DELETE /api/projects/:projectId/members/:userId`
 - `GET /api/projects/:projectId/tasks`
 - `POST /api/projects/:projectId/tasks`
+- `GET /api/tasks/:id`
 - `PATCH /api/tasks/:id` with `if-match-version`
 - `DELETE /api/tasks/:id`
-- `GET|POST /api/tasks/:taskId/comments`
+- `GET|POST /api/tasks/:taskId/comments?page=1&limit=50`
 - `DELETE /api/comments/:id`
+- `GET /api/users`
+- `POST /api/users`
+- `PATCH /api/users/:id`
+- `DELETE /api/users/:id`

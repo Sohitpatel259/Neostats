@@ -5,6 +5,7 @@ dotenv.config();
 export const config = {
   port: Number(process.env.PORT) || 5000,
   mongoUrl: process.env.MONGO_URL?.trim() || "",
+  mongoDbName: process.env.MONGO_DB_NAME?.trim() || "neostats",
   clientUrl: process.env.CLIENT_URL || "http://localhost:3000",
   authSecret: process.env.AUTH_SECRET || "local-development-secret-change-me",
 };

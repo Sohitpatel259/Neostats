@@ -1,6 +1,7 @@
 import { readToken } from "../auth.js";
 import { Project } from "../models/Project.js";
 import { Task } from "../models/Task.js";
+import mongoose from "mongoose";
 import { User } from "../models/User.js";
 
 const roleRank = { viewer: 1, member: 2, manager: 3, admin: 4 };
@@ -34,7 +35,9 @@ export function requireMinimumRole(role) {
 }
 
 export async function requireProjectAccess(request, response, next) {
-  const project = await Project.findById(request.params.projectId || request.params.id).lean();
+  const projectId = request.params.projectId || request.params.id;
+  if (!mongoose.Types.ObjectId.isValid(projectId)) return response.status(400).json({ error: "Invalid project id." });
+  const project = await Project.findById(projectId).lean();
   if (!project) return response.status(404).json({ error: "Project not found." });
   const isMember = project.members?.some((member) => member.userId?.toString() === request.user.id);
   if (request.user.role !== "admin" && !isMember && project.managerId?.toString() !== request.user.id) {
@@ -53,7 +56,9 @@ export function requireProjectManager(request, response, next) {
 }
 
 export async function requireTaskAccess(request, response, next) {
-  const task = await Task.findById(request.params.id || request.params.taskId).lean();
+  const taskId = request.params.id || request.params.taskId;
+  if (!mongoose.Types.ObjectId.isValid(taskId)) return response.status(400).json({ error: "Invalid task id." });
+  const task = await Task.findById(taskId).lean();
   if (!task) return response.status(404).json({ error: "Task not found." });
   const project = await Project.findById(task.projectId).lean();
   const isMember = project?.members?.some((member) => member.userId?.toString() === request.user.id);

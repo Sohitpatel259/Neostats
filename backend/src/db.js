@@ -8,8 +8,11 @@ export async function connectDatabase() {
   }
 
   try {
-    await mongoose.connect(config.mongoUrl, { serverSelectionTimeoutMS: 3000 });
-    console.log("Connected to MongoDB.");
+    await mongoose.connect(config.mongoUrl, {
+      dbName: config.mongoDbName,
+      serverSelectionTimeoutMS: 3000,
+    });
+    console.log(`Connected to MongoDB database "${mongoose.connection.name}".`);
     return true;
   } catch (error) {
     console.warn(
