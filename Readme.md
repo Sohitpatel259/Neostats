@@ -49,7 +49,7 @@ The API can start in demo mode when Atlas is unavailable, but persistent project
 
 ## API notes
 
-The API expects an authenticated identity to be supplied by the future auth layer. During development, role-protected routes accept `x-user-role` and comment creation also requires a valid `x-user-id`. The current UI uses local state for an immediate, polished preview; the API is ready to be connected to the auth/session and query layer.
+Protected API routes require a signed bearer token from the authentication endpoints. The backend loads the active user from MongoDB and enforces workspace roles, project membership, and task access server-side.
 
 Key routes:
 
@@ -77,3 +77,15 @@ Key routes:
 - `POST /api/users`
 - `PATCH /api/users/:id`
 - `DELETE /api/users/:id`
+
+Archiving is a persistent project state, not a deletion. Authorized admins and assigned project managers can call `PATCH /api/projects/:id/archive`; MongoDB stores `status: "archived"` and an `archivedAt` timestamp. Archived projects are excluded from the active project list, shown in the Archive workspace, and can be restored with `PATCH /api/projects/:id` and `{ "status": "on_track" }`.
+
+Team Members receive only projects they belong to and only tasks assigned to them. They can update their assigned tasks, change task status, read task comments, and add comments. The API rejects attempts to access another member's task or reassign a task as a Team Member.
+
+Viewers have read-only access to their permitted projects and the tasks within those projects. The API rejects task updates, task deletion, project changes, member changes, and comment creation for viewers, while the frontend hides all write controls and keeps task details and comments available for review.
+
+Comments are stored in MongoDB with their task and author relationships. Team Members can create comments on tasks assigned to them, all users with task access can read comments, and authors can delete their own comments. Admins and Project Managers can delete comments within projects they can access. Invalid, unauthorized, and missing comment operations return explicit `400`, `403`, or `404` responses.
+
+The Calendar workspace is backed by task `dueDate` values stored in MongoDB. It provides month navigation, a deadline grid, and an agenda view; managers can set a due date while creating a task.
+
+Calendar events are also persisted in MongoDB through `POST /api/events` and loaded with `GET /api/events`. Admins and Project Managers can create workspace or project-linked events; all users can view events for projects they can access.

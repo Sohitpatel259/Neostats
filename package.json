@@ -2,7 +2,7 @@
   "name": "neostats",
   "private": true,
   "version": "1.0.0",
-  "description": "Neostats MERN analytics dashboard",
+  "description": "Orbit collaborative project management platform",
   "scripts": {
     "dev": "concurrently \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
     "build": "npm --prefix frontend run build",

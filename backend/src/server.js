@@ -3,7 +3,6 @@ import express from "express";
 import mongoose from "mongoose";
 import { config } from "./config.js";
 import { connectDatabase } from "./db.js";
-import analyticsRouter from "./routes/analytics.js";
 import authRouter from "./routes/auth.js";
 import workspaceRouter from "./routes/workspace.js";
 
@@ -38,7 +37,6 @@ app.get("/api/health", (_request, response) => {
   });
 });
 
-app.use("/api", analyticsRouter);
 app.use("/api", authRouter);
 app.use("/api", workspaceRouter);
 
